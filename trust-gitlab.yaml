@@ -1,0 +1,10 @@
+# Customer-side trust policy for the GitLab pipeline: accept only this project's main-branch
+# pipeline on a GitLab-hosted runner. GitLab cannot prove an isolated assessor, so L1+ci-identity.
+minTrustLevel: L1+ci-identity
+signers:
+  - name: open-trust-demo GitLab pipeline
+    issuer: https://gitlab.com
+    sourceRepo: https://gitlab.com/dario-mr/open-trust-demo
+    sourceRef: refs/heads/main
+    buildSigner: ^https://gitlab\.com/dario-mr/open-trust-demo//\.gitlab-ci\.yml@refs/heads/main$
+    requireHostedRunner: true

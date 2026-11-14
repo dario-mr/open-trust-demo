@@ -30,6 +30,22 @@ gh run download $RUN -R dario-mr/open-trust-demo -n image-clean -n otrust-image-
 
 [`trust.yaml`](trust.yaml) is the customer's decision about whom to trust. It accepts only the assessor workflow at its pinned commit, assessing this repository's `main` branch on a GitHub-hosted runner.
 
+## The same app on GitLab
+
+[`.gitlab-ci.yml`](.gitlab-ci.yml) runs the same build and assessment on GitLab CI ([gitlab.com/dario-mr/open-trust-demo](https://gitlab.com/dario-mr/open-trust-demo)) through the Open Trust GitLab template, pinned to a commit. It signs keyless with GitLab's OIDC identity.
+
+GitLab's identity names the vendor's own pipeline, never an included template, so these certificates are **`L1+ci-identity`**. They prove which project, branch and commit produced the assessment, but not that the vendor couldn't change it. [`trust-gitlab.yaml`](trust-gitlab.yaml) is the matching customer policy:
+
+```bash
+glab job artifact main assess-clean -R dario-mr/open-trust-demo     # → otrust-out/ (certificate + evidence)
+glab job artifact main build -R dario-mr/open-trust-demo            # → image-*.oci.tar
+./otrust verify otrust-out/certificate.sigstore.json --image image-clean.oci.tar \
+  --trust-policy trust-gitlab.yaml \
+  --trusted-root open-trust/internal/verify/testdata/public-good-trusted-root.json --evidence otrust-out
+```
+
+The check results are the same as on GitHub; only the trust level differs. A buyer whose policy demands `L1+isolated-assessor` rejects the GitLab certificate with `TRUST_LEVEL_TOO_LOW`.
+
 ## What this does not prove
 
 - That the app is secure. The scanners find known issues only.

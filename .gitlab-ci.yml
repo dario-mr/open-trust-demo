@@ -1,0 +1,57 @@
+# Vendor pipeline on GitLab: the same app as the GitHub workflow, assessed by the Open Trust
+# template pinned to a commit. Trust level L1+ci-identity: GitLab's OIDC identity names this
+# pipeline, not the included template, so the vendor could have changed the assessment.
+include:
+  - remote: https://raw.githubusercontent.com/dario-mr/open-trust/24e872e1bfa6b10eacf3ad733e3b77855c512498/ci-templates/gitlab/otrust.gitlab-ci.yml
+
+stages: [build, assess]
+
+variables:
+  OTRUST_REF: 24e872e1bfa6b10eacf3ad733e3b77855c512498
+
+build:
+  stage: build
+  image: docker:28.5.2@sha256:2a232a42256f70d78e3cc5d2b5d6b3276710a0de0596c145f627ecfae90282ac
+  services:
+    - name: docker:28.5.2-dind@sha256:2a232a42256f70d78e3cc5d2b5d6b3276710a0de0596c145f627ecfae90282ac
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: /certs
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_CERT_PATH: /certs/client
+  parallel:
+    matrix:
+      - VARIANT: [clean, vulnerable]
+  script:
+    - docker buildx create --use --driver docker-container >/dev/null
+    - docker buildx build --provenance=mode=min --sbom=false --build-arg VARIANT=$VARIANT --output type=oci,dest=image-$VARIANT.oci.tar .
+  artifacts:
+    paths: [image-$VARIANT.oci.tar]
+    expire_in: 1 week
+
+assess-clean:
+  stage: assess
+  extends: .otrust-assess
+  needs:
+    - job: build
+      parallel:
+        matrix:
+          - VARIANT: clean
+  variables:
+    OTRUST_IMAGE: image-clean.oci.tar
+    OTRUST_SUBJECT: example.com/open-trust-demo:clean
+
+assess-vulnerable:
+  stage: assess
+  extends: .otrust-assess
+  needs:
+    - job: build
+      parallel:
+        matrix:
+          - VARIANT: vulnerable
+  variables:
+    OTRUST_IMAGE: image-vulnerable.oci.tar
+    OTRUST_SUBJECT: example.com/open-trust-demo:vulnerable
+    # expected to fail; keep the pipeline green and the certificate as the record
+    OTRUST_FAIL_ON_FAILED: "false"
