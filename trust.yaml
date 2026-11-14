@@ -1,0 +1,10 @@
+# Customer-side trust policy: accept only certificates signed by the Open Trust assessor workflow
+# at a pinned revision, assessing this repository's main branch on a GitHub-hosted runner.
+minTrustLevel: L1+isolated-assessor
+signers:
+  - name: Open Trust assessor (63d2abd100d38f439e45f96abae615f24787eb01) for open-trust-demo
+    issuer: https://token.actions.githubusercontent.com
+    sourceRepo: https://github.com/dario-mr/open-trust-demo
+    sourceRef: refs/heads/main
+    buildSigner: ^https://github\.com/dario-mr/open-trust/\.github/workflows/assess\.yml@63d2abd100d38f439e45f96abae615f24787eb01$
+    requireHostedRunner: true

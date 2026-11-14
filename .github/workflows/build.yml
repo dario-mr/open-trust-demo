@@ -1,0 +1,51 @@
+# Vendor pipeline: build the image (clean, and deliberately vulnerable), then hand each to the
+# Open Trust assessor in another repository. This repository can only call it, pinned by commit;
+# it cannot add steps to it, so the signature can prove the assessment ran unmodified.
+name: build and assess
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        variant: [clean, vulnerable]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build OCI image
+        run: |
+          docker buildx build --provenance=mode=min --sbom=false \
+            --build-arg VARIANT=${{ matrix.variant }} \
+            --output type=oci,dest=image.oci.tar .
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: image-${{ matrix.variant }}
+          path: image.oci.tar
+          if-no-files-found: error
+
+  assess:
+    needs: build
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [clean, vulnerable]
+    uses: dario-mr/open-trust/.github/workflows/assess.yml@63d2abd100d38f439e45f96abae615f24787eb01
+    with:
+      image-artifact: image-${{ matrix.variant }}
+      subject-name: example.com/open-trust-demo:${{ matrix.variant }}
+      # the vulnerable image is expected to fail; keep the run green and the certificate as the record
+      fail-on-failed-assessment: ${{ matrix.variant == 'clean' }}
