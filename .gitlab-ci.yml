@@ -24,7 +24,10 @@ build:
     matrix:
       - VARIANT: [clean, vulnerable]
   script:
-    - docker buildx create --use --driver docker-container >/dev/null
+    # buildx cannot build a builder from TLS env vars; it needs a context (GitLab dind quirk)
+    - for i in $(seq 1 20); do docker info >/dev/null 2>&1 && break; sleep 3; done
+    - docker context create dind >/dev/null
+    - docker buildx create --use --driver docker-container dind >/dev/null
     - docker buildx build --provenance=mode=min --sbom=false --build-arg VARIANT=$VARIANT --output type=oci,dest=image-$VARIANT.oci.tar .
   artifacts:
     paths: [image-$VARIANT.oci.tar]
