@@ -24,7 +24,7 @@ gh run download $RUN -R dario-mr/open-trust-demo -n image-clean -n otrust-image-
 
 | Case | Result |
 |---|---|
-| clean | `VERIFIED` (exit 0), trust level `L1+isolated-assessor` |
+| clean | `VERIFIED` (exit 0), trust level `L1+isolated-assessor`, all six checks PASSED, including signed build provenance (`attest-build-provenance`) |
 | vulnerable (`image-vulnerable`, `otrust-image-vulnerable`) | `ASSESSMENT_FAILED` (exit 10), with the Log4Shell CVEs listed |
 | clean certificate + vulnerable image | `ARTIFACT_MISMATCH` (exit 14) |
 
