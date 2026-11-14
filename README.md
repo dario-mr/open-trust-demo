@@ -38,7 +38,7 @@ GitLab's identity names the vendor's own pipeline, never an included template, s
 
 ```bash
 glab job artifact main assess-clean -R dario-mr/open-trust-demo     # → otrust-out/ (certificate + evidence)
-glab job artifact main build -R dario-mr/open-trust-demo            # → image-*.oci.tar
+glab job artifact main "build: [clean]" -R dario-mr/open-trust-demo # → image-clean.oci.tar
 ./otrust verify otrust-out/certificate.sigstore.json --image image-clean.oci.tar \
   --trust-policy trust-gitlab.yaml \
   --trusted-root open-trust/internal/verify/testdata/public-good-trusted-root.json --evidence otrust-out
