@@ -36,10 +36,11 @@ build:
       --output type=image,name=$CI_REGISTRY_IMAGE:$VARIANT,push=true
       --metadata-file meta.json .
     # hand the pinned reference to the assess job (dotenv variables outrank job variables)
-    - digest=$(sed -n 's/.*"containerimage.digest": *"\([^"]*\)".*/\1/p' meta.json)
-    - '[ -n "$digest" ] || { echo "no digest in meta.json"; cat meta.json; exit 1; }'
-    - echo "OTRUST_IMAGE=$CI_REGISTRY_IMAGE@$digest" > image.env
-    - cat image.env
+    - |
+      digest=$(sed -n 's/.*"containerimage.digest": *"\([^"]*\)".*/\1/p' meta.json)
+      [ -n "$digest" ] || { echo "no digest in meta.json"; cat meta.json; exit 1; }
+      echo "OTRUST_IMAGE=$CI_REGISTRY_IMAGE@$digest" > image.env
+      cat image.env
   artifacts:
     paths: [image-$VARIANT.oci.tar]
     reports:

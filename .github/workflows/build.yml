@@ -49,9 +49,11 @@ jobs:
           idx=$(tar -xOf image.oci.tar index.json | jq -r '.manifests[0].digest')
           d=$(tar -xOf image.oci.tar "blobs/sha256/${idx#sha256:}" | jq -r '[.manifests[] | select(.annotations["vnd.docker.reference.type"] != "attestation-manifest")] | if length == 1 then .[0].digest else error("expected one image manifest") end')
           echo "digest=$d" >> "$GITHUB_OUTPUT"
-          # the pushed index must be the tar's: then the tar and the registry image are one subject
+          # the registry's index differs from the tar's (exporter annotations), but the image manifest,
+          # which the certificate binds, must be the same: then the tar and the registry image are one subject
           pushed=$(jq -r '."containerimage.digest"' meta.json)
-          [ "$pushed" = "$idx" ] || { echo "::error::pushed $pushed, tar has $idx"; exit 1; }
+          rd=$(docker buildx imagetools inspect --raw "ghcr.io/${{ github.repository }}@$pushed" | jq -r '[.manifests[] | select(.annotations["vnd.docker.reference.type"] != "attestation-manifest")] | .[0].digest')
+          [ "$rd" = "$d" ] || { echo "::error::registry image manifest $rd, tar has $d"; exit 1; }
           echo "ref-${{ matrix.variant }}=ghcr.io/${{ github.repository }}@$pushed" >> "$GITHUB_OUTPUT"
       - name: Attest build provenance
         id: attest
