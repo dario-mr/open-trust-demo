@@ -62,7 +62,7 @@ jobs:
       fail-fast: false
       matrix:
         variant: [clean, vulnerable]
-    uses: dario-mr/open-trust/.github/workflows/assess.yml@e8b38692f553d838e7af9d44827e99ab2c06991e # v0.1.0
+    uses: dario-mr/open-trust/.github/workflows/assess.yml@348609a5a85569de4b8882dc6c63fad1fbf46a23 # v0.1.1
     with:
       image-artifact: image-${{ matrix.variant }}
       subject-name: example.com/open-trust-demo:${{ matrix.variant }}
