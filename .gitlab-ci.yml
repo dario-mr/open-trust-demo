@@ -2,12 +2,12 @@
 # template pinned to a commit. Trust level L1+ci-identity: GitLab's OIDC identity names this
 # pipeline, not the included template, so the vendor could have changed the assessment.
 include:
-  - remote: https://raw.githubusercontent.com/dario-mr/open-trust/bdd04c9b21076e7dd41b7f222db3a09c86cc1389/ci-templates/gitlab/otrust.gitlab-ci.yml
+  - remote: https://raw.githubusercontent.com/dario-mr/open-trust/e4618b2d5f5bdcfbe8f630b09b3b3cd8210755dc/ci-templates/gitlab/otrust.gitlab-ci.yml
 
 stages: [build, assess]
 
 variables:
-  OTRUST_REF: bdd04c9b21076e7dd41b7f222db3a09c86cc1389
+  OTRUST_REF: e4618b2d5f5bdcfbe8f630b09b3b3cd8210755dc
 
 build:
   stage: build
@@ -28,9 +28,22 @@ build:
     - for i in $(seq 1 20); do docker info >/dev/null 2>&1 && break; sleep 3; done
     - docker context create dind >/dev/null
     - docker buildx create --use --driver docker-container dind >/dev/null
-    - docker buildx build --provenance=mode=min --sbom=false --build-arg VARIANT=$VARIANT --output type=oci,dest=image-$VARIANT.oci.tar .
+    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin "$CI_REGISTRY" >/dev/null
+    # one build, two outputs: the registry image (assessed) and an OCI tar (for offline buyers)
+    - >-
+      docker buildx build --provenance=mode=min --sbom=false --build-arg VARIANT=$VARIANT
+      --output type=oci,dest=image-$VARIANT.oci.tar
+      --output type=image,name=$CI_REGISTRY_IMAGE:$VARIANT,push=true
+      --metadata-file meta.json .
+    # hand the pinned reference to the assess job (dotenv variables outrank job variables)
+    - digest=$(sed -n 's/.*"containerimage.digest": *"\([^"]*\)".*/\1/p' meta.json)
+    - '[ -n "$digest" ] || { echo "no digest in meta.json"; cat meta.json; exit 1; }'
+    - echo "OTRUST_IMAGE=$CI_REGISTRY_IMAGE@$digest" > image.env
+    - cat image.env
   artifacts:
     paths: [image-$VARIANT.oci.tar]
+    reports:
+      dotenv: image.env
     expire_in: 1 week
 
 assess-clean:
@@ -42,7 +55,6 @@ assess-clean:
         matrix:
           - VARIANT: clean
   variables:
-    OTRUST_IMAGE: image-clean.oci.tar
     OTRUST_SUBJECT: example.com/open-trust-demo:clean
 
 assess-vulnerable:
@@ -54,7 +66,6 @@ assess-vulnerable:
         matrix:
           - VARIANT: vulnerable
   variables:
-    OTRUST_IMAGE: image-vulnerable.oci.tar
     OTRUST_SUBJECT: example.com/open-trust-demo:vulnerable
     # expected to fail; keep the pipeline green and the certificate as the record
     OTRUST_FAIL_ON_FAILED: "false"
