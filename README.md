@@ -13,7 +13,7 @@ You need the image and the certificate. The image can come straight from the reg
 ```bash
 gh release download v0.1.3 -R dario-mr/open-trust -p "otrust-$(uname -s | tr A-Z a-z)-$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')" -O otrust && chmod +x otrust
 RUN=$(gh run list -R dario-mr/open-trust-demo -w "build and assess" -s success -L 1 --json databaseId -q '.[0].databaseId')
-gh run download $RUN -R dario-mr/open-trust-demo -n otrust-image-clean
+gh run download $RUN -R dario-mr/open-trust-demo -n otrust-image-clean -D otrust-image-clean
 DIGEST=sha256:$(jq -r '.dsseEnvelope.payload|@base64d|fromjson|.subject[0].digest.sha256' otrust-image-clean/certificate.sigstore.json)
 
 ./otrust verify otrust-image-clean/certificate.sigstore.json \
