@@ -2,21 +2,22 @@
 
 A small Spring Boot app that plays the **software vendor** for [Open Trust](https://github.com/dario-mr/open-trust).
 
-The [`build and assess`](.github/workflows/build.yml) workflow builds the image twice: **clean**, and **vulnerable** with `log4j-core` 2.14.1 (Log4Shell). It then calls the Open Trust assessor `dario-mr/open-trust/.github/workflows/assess.yml`, **pinned to a commit**.
+The [`build and assess`](.github/workflows/build.yml) workflow builds the image twice and pushes both to [`ghcr.io/dario-mr/open-trust-demo`](https://github.com/dario-mr/open-trust-demo/pkgs/container/open-trust-demo): **clean**, and **vulnerable** with `log4j-core` 2.14.1 (Log4Shell). It then calls the Open Trust assessor `dario-mr/open-trust/.github/workflows/assess.yml`, **pinned to a commit**, with the registry image pinned by digest.
 
 The assessor is in another repository, so this repository can't add steps to it. That lets the keyless signature prove the assessment ran unmodified, at trust level **`L1+isolated-assessor`**. The evidence (SBOM, scan results) never leaves the run's artifacts.
 
 ## Verify as a customer
 
-You need the image and the certificate. The evidence is optional: if the vendor shares it, `--evidence` re-checks it and re-runs the policy.
+You need the image and the certificate. The image can come straight from the registry, pinned by digest, or as the OCI tar the workflow also keeps, for offline verification. The evidence is optional: if the vendor shares it, `--evidence` re-checks it and re-runs the policy.
 
 ```bash
-git clone https://github.com/dario-mr/open-trust && (cd open-trust && go build -o ../otrust ./cmd/otrust)
+gh release download v0.1.3 -R dario-mr/open-trust -p "otrust-$(uname -s | tr A-Z a-z)-$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')" -O otrust && chmod +x otrust
 RUN=$(gh run list -R dario-mr/open-trust-demo -w "build and assess" -s success -L 1 --json databaseId -q '.[0].databaseId')
-gh run download $RUN -R dario-mr/open-trust-demo -n image-clean -n otrust-image-clean
+gh run download $RUN -R dario-mr/open-trust-demo -n otrust-image-clean
+DIGEST=sha256:$(jq -r '.dsseEnvelope.payload|@base64d|fromjson|.subject[0].digest.sha256' otrust-image-clean/certificate.sigstore.json)
 
 ./otrust verify otrust-image-clean/certificate.sigstore.json \
-  --image image-clean/image.oci.tar \
+  --image ghcr.io/dario-mr/open-trust-demo@$DIGEST \
   --trust-policy trust.yaml \
   --trusted-root open-trust/internal/verify/testdata/public-good-trusted-root.json \
   --evidence otrust-image-clean
@@ -38,8 +39,8 @@ GitLab's identity names the vendor's own pipeline, never an included template, s
 
 ```bash
 glab job artifact main assess-clean -R dario-mr/open-trust-demo     # → otrust-out/ (certificate + evidence)
-glab job artifact main "build: [clean]" -R dario-mr/open-trust-demo # → image-clean.oci.tar
-./otrust verify otrust-out/certificate.sigstore.json --image image-clean.oci.tar \
+DIGEST=sha256:$(jq -r '.dsseEnvelope.payload|@base64d|fromjson|.subject[0].digest.sha256' otrust-out/certificate.sigstore.json)
+./otrust verify otrust-out/certificate.sigstore.json --image registry.gitlab.com/dario-mr/open-trust-demo@$DIGEST \
   --trust-policy trust-gitlab.yaml \
   --trusted-root open-trust/internal/verify/testdata/public-good-trusted-root.json --evidence otrust-out
 ```
