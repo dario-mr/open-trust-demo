@@ -11,4 +11,6 @@ RUN mvn -q -B -ntp package -DskipTests $([ "$VARIANT" = vulnerable ] && echo -Pv
 FROM ${RUNTIME}
 COPY --from=build /src/target/app.jar /app/app.jar
 EXPOSE 8080
+# the distroless :nonroot base already runs as uid 65532; say so, so scanners can see it
+USER nonroot:nonroot
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
