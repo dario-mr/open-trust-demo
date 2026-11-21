@@ -81,7 +81,7 @@ jobs:
       fail-fast: false
       matrix:
         variant: [clean, vulnerable]
-    uses: dario-mr/open-trust/.github/workflows/assess.yml@5717e68a21ac99225eccff6850dd90e096ceda94 # v0.1.9
+    uses: dario-mr/open-trust/.github/workflows/assess.yml@c0b7b1664cfb16f69c64a15887c51db557b7180e # v0.1.10
     with:
       image-ref: ${{ needs.build.outputs[format('ref-{0}', matrix.variant)] }}
       # the artifact still carries the signed provenance bundle (and the tar, for offline buyers)
