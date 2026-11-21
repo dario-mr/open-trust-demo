@@ -11,7 +11,7 @@ The assessor is in another repository, so this repository can't add steps to it.
 You need the image and the certificate. The image can come straight from the registry, pinned by digest, or as the OCI tar the workflow also keeps, for offline verification. The evidence is optional: if the vendor shares it, `--evidence` re-checks it and re-runs the policy.
 
 ```bash
-gh release download v0.1.5 -R dario-mr/open-trust -p "otrust-$(uname -s | tr A-Z a-z)-$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')" -O otrust && chmod +x otrust
+gh release download v0.1.6 -R dario-mr/open-trust -p "otrust-$(uname -s | tr A-Z a-z)-$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')" -O otrust && chmod +x otrust
 RUN=$(gh run list -R dario-mr/open-trust-demo -w "build and assess" -s success -L 1 --json databaseId -q '.[0].databaseId')
 gh run download $RUN -R dario-mr/open-trust-demo -n otrust-image-clean -D otrust-image-clean
 DIGEST=sha256:$(jq -r '.dsseEnvelope.payload|@base64d|fromjson|.subject[0].digest.sha256' otrust-image-clean/certificate.sigstore.json)
