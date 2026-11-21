@@ -11,7 +11,7 @@ The assessor is in another repository, so this repository can't add steps to it.
 You need the image and the certificate. The image can come straight from the registry, pinned by digest, or as the OCI tar the workflow also keeps, for offline verification. The evidence is optional: if the vendor shares it, `--evidence` re-checks it and re-runs the policy.
 
 ```bash
-gh release download v0.1.4 -R dario-mr/open-trust -p "otrust-$(uname -s | tr A-Z a-z)-$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')" -O otrust && chmod +x otrust
+gh release download v0.1.5 -R dario-mr/open-trust -p "otrust-$(uname -s | tr A-Z a-z)-$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')" -O otrust && chmod +x otrust
 RUN=$(gh run list -R dario-mr/open-trust-demo -w "build and assess" -s success -L 1 --json databaseId -q '.[0].databaseId')
 gh run download $RUN -R dario-mr/open-trust-demo -n otrust-image-clean -D otrust-image-clean
 DIGEST=sha256:$(jq -r '.dsseEnvelope.payload|@base64d|fromjson|.subject[0].digest.sha256' otrust-image-clean/certificate.sigstore.json)
@@ -28,6 +28,7 @@ DIGEST=sha256:$(jq -r '.dsseEnvelope.payload|@base64d|fromjson|.subject[0].diges
 | clean | `VERIFIED` (exit 0), trust level `L1+isolated-assessor`, all six checks PASSED, including signed build provenance (`attest-build-provenance`) |
 | vulnerable (`image-vulnerable`, `otrust-image-vulnerable`) | `ASSESSMENT_FAILED` (exit 10), with the Log4Shell CVEs listed |
 | clean certificate + vulnerable image | `ARTIFACT_MISMATCH` (exit 14) |
+| clean, with `--recheck` (needs Docker) | `VERIFIED`: your own scan of the image agrees with the certificate, and its packages match the vendor's SBOM |
 
 [`trust.yaml`](trust.yaml) is the customer's decision about whom to trust. It accepts only the assessor workflow at its pinned commit, assessing this repository's `main` branch on a GitHub-hosted runner.
 
