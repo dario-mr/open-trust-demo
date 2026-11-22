@@ -81,7 +81,7 @@ jobs:
       fail-fast: false
       matrix:
         variant: [clean, vulnerable]
-    uses: dario-mr/open-trust/.github/workflows/assess.yml@9f16fa97b460b3e68cb18adabff57955d172d8f5 # v0.1.15
+    uses: dario-mr/open-trust/.github/workflows/assess.yml@09477585a21fdceacc434126c751fa018cad8c09 # v0.1.16
     with:
       image-ref: ${{ needs.build.outputs[format('ref-{0}', matrix.variant)] }}
       # the artifact still carries the signed provenance bundle (and the tar, for offline buyers)
@@ -111,8 +111,8 @@ jobs:
           IMAGE: ${{ needs.build.outputs[format('ref-{0}', matrix.variant)] }}
         run: |
           set -euo pipefail
-          curl -fsSL -o otrust https://github.com/dario-mr/open-trust/releases/download/v0.1.15/otrust-linux-amd64
-          echo "4f280ac26ed2fc1030b10951af325b52dfd0d8ac6640af0378624603cf7e6ddd  otrust" | sha256sum -c
+          curl -fsSL -o otrust https://github.com/dario-mr/open-trust/releases/download/v0.1.16/otrust-linux-amd64
+          echo "d317f7d9ad521fb90a68d503c12305d3020dba75a3e24a0912fadb22697a8c4f  otrust" | sha256sum -c
           chmod +x otrust
           docker login ghcr.io -u "$ACTOR" --password-stdin <<<"$GH_TOKEN"
           ./otrust attach certificate.sigstore.json --image "$IMAGE"
