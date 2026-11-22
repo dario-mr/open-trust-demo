@@ -5,10 +5,10 @@ pipeline {
     agent any
     environment {
         // the generic script, pinned by commit; the otrust release it runs, pinned by digest
-        OTRUST_TEMPLATE = 'https://raw.githubusercontent.com/dario-mr/open-trust/9fe30e6ea967ab565e310fc183382b74f04cd121/ci-templates/generic/otrust-assess.sh'
-        OTRUST_VERSION  = 'v0.1.12'
-        OTRUST_SHA256_LINUX_AMD64 = '3d2ae0ad95272ce02b823a0ca365b85369172c75afd1071a973e88fa2e82b1f5'
-        OTRUST_SHA256_LINUX_ARM64 = '3a5fe0836bcff0bb163f67043fde81f6b88382c9fe4ca73191d884dc08381be1'
+        OTRUST_TEMPLATE = 'https://raw.githubusercontent.com/dario-mr/open-trust/934e34b1006ddae10c56d4f76b08becbf0503e52/ci-templates/generic/otrust-assess.sh'
+        OTRUST_VERSION  = 'v0.1.13'
+        OTRUST_SHA256_LINUX_AMD64 = '3025145a5bfbeb6b8b1d1b7f0d20c96dc5a30c78822f2d3cdb226e6817c9da9c'
+        OTRUST_SHA256_LINUX_ARM64 = '40779afe78b66b8722923cd09927f5799716b584b7f93dcf50c467720eced750'
         OTRUST_SUBJECT  = 'example.com/open-trust-demo:clean'
     }
     stages {
