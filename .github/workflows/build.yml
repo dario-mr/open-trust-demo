@@ -81,7 +81,7 @@ jobs:
       fail-fast: false
       matrix:
         variant: [clean, vulnerable]
-    uses: dario-mr/open-trust/.github/workflows/assess.yml@78c55a0a2b31ae0fc480f675757681ad0b473d36 # v0.1.11
+    uses: dario-mr/open-trust/.github/workflows/assess.yml@36bb6c5d7204273d39836b0b2a9ecef8ce6da456 # v0.1.12
     with:
       image-ref: ${{ needs.build.outputs[format('ref-{0}', matrix.variant)] }}
       # the artifact still carries the signed provenance bundle (and the tar, for offline buyers)
@@ -89,3 +89,30 @@ jobs:
       subject-name: example.com/open-trust-demo:${{ matrix.variant }}
       # the vulnerable image is expected to fail; keep the run green and the certificate as the record
       fail-on-failed-assessment: ${{ matrix.variant == 'clean' }}
+
+  # store each certificate on its image in ghcr.io, so buyers verify by reference alone. This adds no
+  # trust (the certificate is signed by the assessor either way), so the vendor's own job may do it.
+  attach:
+    needs: [build, assess]
+    runs-on: ubuntu-24.04
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        variant: [clean, vulnerable]
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: otrust-image-${{ matrix.variant }}
+      - name: Attach the certificate to the image
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+          IMAGE: ${{ needs.build.outputs[format('ref-{0}', matrix.variant)] }}
+        run: |
+          set -euo pipefail
+          curl -fsSL -o otrust https://github.com/dario-mr/open-trust/releases/download/v0.1.12/otrust-linux-amd64
+          echo "3d2ae0ad95272ce02b823a0ca365b85369172c75afd1071a973e88fa2e82b1f5  otrust" | sha256sum -c
+          chmod +x otrust
+          docker login ghcr.io -u "$ACTOR" --password-stdin <<<"$GH_TOKEN"
+          ./otrust attach certificate.sigstore.json --image "$IMAGE"

@@ -2,12 +2,12 @@
 # template pinned to a commit. Trust level L1+ci-identity: GitLab's OIDC identity names this
 # pipeline, not the included template, so the vendor could have changed the assessment.
 include:
-  - remote: https://raw.githubusercontent.com/dario-mr/open-trust/78c55a0a2b31ae0fc480f675757681ad0b473d36/ci-templates/gitlab/otrust.gitlab-ci.yml
+  - remote: https://raw.githubusercontent.com/dario-mr/open-trust/36bb6c5d7204273d39836b0b2a9ecef8ce6da456/ci-templates/gitlab/otrust.gitlab-ci.yml
 
 stages: [build, assess]
 
 variables:
-  OTRUST_REF: 78c55a0a2b31ae0fc480f675757681ad0b473d36
+  OTRUST_REF: 36bb6c5d7204273d39836b0b2a9ecef8ce6da456
 
 build:
   stage: build
@@ -57,6 +57,7 @@ assess-clean:
           - VARIANT: clean
   variables:
     OTRUST_SUBJECT: example.com/open-trust-demo:clean
+    OTRUST_ATTACH: "true" # buyers verify the registry image by reference alone
 
 assess-vulnerable:
   stage: assess
@@ -68,5 +69,6 @@ assess-vulnerable:
           - VARIANT: vulnerable
   variables:
     OTRUST_SUBJECT: example.com/open-trust-demo:vulnerable
+    OTRUST_ATTACH: "true"
     # expected to fail; keep the pipeline green and the certificate as the record
     OTRUST_FAIL_ON_FAILED: "false"
