@@ -2,12 +2,12 @@
 # template pinned to a commit. Trust level L1+ci-identity: GitLab's OIDC identity names this
 # pipeline, not the included template, so the vendor could have changed the assessment.
 include:
-  - remote: https://raw.githubusercontent.com/dario-mr/open-trust/9c38d426d5f2bc8c0f90f199c1b0486b16517c33/ci-templates/gitlab/otrust.gitlab-ci.yml
+  - remote: https://raw.githubusercontent.com/dario-mr/open-trust/21ef84be26d2eeef4b9970b14b3aea0b2316050e/ci-templates/gitlab/otrust.gitlab-ci.yml
 
 stages: [build, assess]
 
 variables:
-  OTRUST_REF: 9c38d426d5f2bc8c0f90f199c1b0486b16517c33
+  OTRUST_REF: 21ef84be26d2eeef4b9970b14b3aea0b2316050e
 
 build:
   stage: build
