@@ -2,9 +2,9 @@
 # at a pinned revision, assessing this repository's main branch on a GitHub-hosted runner.
 minTrustLevel: L1+isolated-assessor
 signers:
-  - name: Open Trust assessor (09477585a21fdceacc434126c751fa018cad8c09) for open-trust-demo
+  - name: Open Trust assessor (c32d6915ba419c40ee30d57ea3da1791e61b9486) for open-trust-demo
     issuer: https://token.actions.githubusercontent.com
     sourceRepo: https://github.com/dario-mr/open-trust-demo
     sourceRef: refs/heads/main
-    buildSigner: ^https://github\.com/dario-mr/open-trust/\.github/workflows/assess\.yml@09477585a21fdceacc434126c751fa018cad8c09$
+    buildSigner: ^https://github\.com/dario-mr/open-trust/\.github/workflows/assess\.yml@c32d6915ba419c40ee30d57ea3da1791e61b9486$
     requireHostedRunner: true
