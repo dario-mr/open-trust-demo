@@ -115,4 +115,4 @@ jobs:
           echo "5a9c8b9c7e3f023a2a70ef69b3de84e5860eb78b82f63de5c603f475df42a398  otrust" | sha256sum -c
           chmod +x otrust
           docker login ghcr.io -u "$ACTOR" --password-stdin <<<"$GH_TOKEN"
-          ./otrust attach certificate.sigstore.json --image "$IMAGE"
+          for c in certificate*.sigstore.json; do ./otrust attach "$c" --image "$IMAGE"; done
